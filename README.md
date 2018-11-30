@@ -1,4 +1,4 @@
-# workplaytimer
+# Work Play Timer
 Work &amp; Play timer, a way to manage taking small breaks throughout the day.
 
 
