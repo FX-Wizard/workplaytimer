@@ -1,5 +1,5 @@
 import sys
-from PyQt5 import QtCore, QtGui, QtWidgets, QtMultimedia
+from PySide2 import QtCore, QtGui, QtWidgets, QtMultimedia
 
 
 class Ui_Form(QtWidgets.QWidget):
