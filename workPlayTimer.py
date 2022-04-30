@@ -1,13 +1,13 @@
+#!/bin/python3
 import sys
+import time
 from PySide2 import QtCore, QtGui, QtWidgets, QtMultimedia
 
 
 class Ui_Form(QtWidgets.QWidget):
-    second = 0
-    minute = 0
-    hour = 0
+    seconds = 0
     task = "0"
-    active = True
+    isPaused = False
 
     def __init__(self):
         super(Ui_Form, self).__init__()
@@ -41,6 +41,9 @@ class Ui_Form(QtWidgets.QWidget):
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.Time)
 
+        self.startButton.clicked.connect(self.setStartValue)
+        self.pauseButton.clicked.connect(self.pause)
+
         self.retranslateUi()
 
 
@@ -55,14 +58,19 @@ class Ui_Form(QtWidgets.QWidget):
         self.pauseButton.setText(_translate("Form", "Pause"))
         self.activityMessage.setText(_translate("Form", "WORK TIME!"))
 
-        self.startButton.clicked.connect(self.setStartValue)
-        self.pauseButton.clicked.connect(self.timer.stop)
+    def pauseButtonOnClick(self):
+        self.pauseButton.hide()
+
+        self.resumeButton = QtWidgets.QPushButton(self)
+        self.resumeButton.setGeometry(QtCore.QRect(160, 190, 141, 27))
+        self.resumeButton.setObjectName("resumeButton")
+        self.resumeButton.clicked.connect(self.resume)
+        self.resumeButton.show()
 
 
     def setStartValue(self):
-
-        if self.active == False:
-            self.start
+        if self.isPaused:
+            self.start()
         else:
             if self.task == "work":
                 self.task = "play"
@@ -73,25 +81,31 @@ class Ui_Form(QtWidgets.QWidget):
                 self.activityMessage.setText("WORK TIME!")
                 input = self.setWorkTxt.text()
 
+            value = str(input)
+            numbers = value.split(":")
+            
             try:
-                value = str(input)
-                num = value.split(":")
+                num = list(map(int, numbers))
+            except ValueError:
+                self.errorPopup("Input Error!\nPlease type in a number\n\nFor example:\nhours:minutes\nor just type the number of minutes")
 
-                if len(num) == 3:
-                    self.hour = int(num[0])
-                    self.minute = int(num[1])
-                    self.second = int(num[2])
+            try:
+                print('look here', numbers)
+                if len(num) > 2:
+                    self.errorPopup("Input Error!\nPlease type in a number\n\nFor example:\nhours:minutes\nor just type the number of minutes")
                 elif len(num) == 2:
-                    self.hour = int(num[0])
-                    self.minute = int(num[1])
+                    # hour : minute
+                    self.seconds = ((num[0] *60) + num[1]) * 60
                 else:
-                    self.minute = int(num[0])
+                    # minute
+                    self.seconds = num[0] * 60
+                    print('resetting time', self.seconds)
 
-                self.active = False
+                if not self.timer.isActive():
+                    self.start()
             except:
-                self.error()
-
-        self.start()
+                self.timer.stop()
+                self.errorPopup("Input Error!\nPlease type in a number\n\nFor example:\nhours:minutes\nor just type the number of minutes")
 
 
     def start(self):
@@ -99,42 +113,51 @@ class Ui_Form(QtWidgets.QWidget):
         If timer is already running reset time to 0 and start
         '''
         if self.timer.isActive():
-            self.hour = 0
-            self.minute = 0
-            self.second = 0
-            self.active = False
-            #self.setStartValue()
+            print('TIMER IS ACTIVE')
+            self.seconds = 0
         else:
             self.timer.start(1000)
 
 
+    def pause(self):
+        ''' Pause the timer '''
+        self.isPaused = True
+        self.timer.stop()
+
+
     def Time(self):
 
-        if self.second > 0:
-            self.second -= 1
+        if self.seconds > 0:
+            self.seconds -= 1
         else:
-            if self.minute > 0:
-                self.second = 59
-                self.minute -= 1
-            elif self.minute == 0 and self.hour > 0:
-                self.hour -= 1
-                self.minute = 59
-                self.second = 59
-            else:
-                self.active = True
-                QtMultimedia.QSound.play("alarm.wav")
-                self.setStartValue()
+            self.setStartValue()
 
-        time = "{0}:{1}:{2}".format(self.hour, self.minute, self.second)
+        countdown = time.strftime("%H:%M:%S", time.gmtime(self.seconds))
+        print('look here', self.seconds)
 
-        self.lcd.setDigitCount(len(time))
-        self.lcd.display(time)
+        self.lcd.setDigitCount(len(countdown))
+        self.lcd.display(countdown)
+
+    def reset(self):
+        if True:
+            pass
+
+    def stop(self):
+        self.task = "work"
 
 
-    def error(self):
+    def errorPopup(self, message):
+        self.timer.stop()
         msgBox = QtWidgets.QMessageBox()
-        msgBox.setText("Input Error!\nPlease type in a number\n\nFor example:\nhours:minutes\nor just type the number of minutes")
+        msgBox.setText(message)
         msgBox.exec_()
+
+
+    def playSound(self):
+        try:
+            QtMultimedia.QSound.play("alarm.wav")
+        except:
+            self.errorPopup('ERROR PLAYING SOUND FILE')
 
 
 if __name__ == '__main__':
