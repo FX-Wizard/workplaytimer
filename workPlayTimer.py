@@ -1,7 +1,7 @@
 #!/bin/python3
 import sys
 import time
-from PySide2 import QtCore, QtGui, QtWidgets, QtMultimedia
+from PySide6 import QtCore, QtGui, QtWidgets, QtMultimedia
 
 
 class Ui_Form(QtWidgets.QWidget):
@@ -90,7 +90,6 @@ class Ui_Form(QtWidgets.QWidget):
                 self.errorPopup("Input Error!\nPlease type in a number\n\nFor example:\nhours:minutes\nor just type the number of minutes")
 
             try:
-                print('look here', numbers)
                 if len(num) > 2:
                     self.errorPopup("Input Error!\nPlease type in a number\n\nFor example:\nhours:minutes\nor just type the number of minutes")
                 elif len(num) == 2:
@@ -99,7 +98,6 @@ class Ui_Form(QtWidgets.QWidget):
                 else:
                     # minute
                     self.seconds = num[0] * 60
-                    print('resetting time', self.seconds)
 
                 if not self.timer.isActive():
                     self.start()
@@ -113,7 +111,6 @@ class Ui_Form(QtWidgets.QWidget):
         If timer is already running reset time to 0 and start
         '''
         if self.timer.isActive():
-            print('TIMER IS ACTIVE')
             self.seconds = 0
         else:
             self.timer.start(1000)
@@ -133,7 +130,6 @@ class Ui_Form(QtWidgets.QWidget):
             self.setStartValue()
 
         countdown = time.strftime("%H:%M:%S", time.gmtime(self.seconds))
-        print('look here', self.seconds)
 
         self.lcd.setDigitCount(len(countdown))
         self.lcd.display(countdown)
@@ -164,4 +160,4 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     ex = Ui_Form()
     ex.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
