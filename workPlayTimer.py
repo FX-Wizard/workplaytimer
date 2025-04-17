@@ -1,7 +1,13 @@
 #!/bin/python3
+import os
 import sys
 import time
 from PySide6 import QtCore, QtGui, QtWidgets, QtMultimedia
+
+
+APP_PATH = os.path.dirname(os.path.abspath(__file__))
+ICON_PATH = os.path.join(APP_PATH, 'icon.svg')
+SOUND_PATH = os.path.join(APP_PATH, 'alarm.wav')
 
 
 class Ui_Form(QtWidgets.QWidget):
@@ -37,12 +43,12 @@ class Ui_Form(QtWidgets.QWidget):
         self.lcd = QtWidgets.QLCDNumber(self)
         self.lcd.setGeometry(QtCore.QRect(13, 52, 281, 91))
         self.lcd.setProperty("intValue", 0)
-
+        
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.Time)
 
         self.startButton.clicked.connect(self.setStartValue)
-        self.pauseButton.clicked.connect(self.pause)
+        self.pauseButton.clicked.connect(self.pause_button_hit)
 
         self.retranslateUi()
 
@@ -71,6 +77,7 @@ class Ui_Form(QtWidgets.QWidget):
     def setStartValue(self):
         if self.isPaused:
             self.start()
+            self.isPaused = not self.isPaused
         else:
             if self.task == "work":
                 self.task = "play"
@@ -112,14 +119,25 @@ class Ui_Form(QtWidgets.QWidget):
         '''
         if self.timer.isActive():
             self.seconds = 0
-        else:
-            self.timer.start(1000)
+        
+        self.timer.start(1000)
+
+
+    def pause_button_hit(self):
+        _translate = QtCore.QCoreApplication.translate
+        if self.isPaused == True:
+            self.pauseButton.setText(_translate("Form", "Pause"))
+            self.start()
+        else: # not paused
+            self.pauseButton.setText(_translate("Form", "Resume"))
+            self.isPaused = not self.isPaused
+            self.timer.stop()
 
 
     def pause(self):
         ''' Pause the timer '''
-        self.isPaused = True
-        self.timer.stop()
+        pass
+
 
 
     def Time(self):
@@ -151,13 +169,19 @@ class Ui_Form(QtWidgets.QWidget):
 
     def playSound(self):
         try:
-            QtMultimedia.QSound.play("alarm.wav")
+            QtMultimedia.QSound.play(SOUND_PATH)
         except:
             self.errorPopup('ERROR PLAYING SOUND FILE')
 
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
+    
+    # Icon
+    if os.path.exists(ICON_PATH):
+        appIcon = QtGui.QIcon(ICON_PATH)
+        app.setWindowIcon(appIcon)
+    
     ex = Ui_Form()
     ex.show()
     sys.exit(app.exec())
